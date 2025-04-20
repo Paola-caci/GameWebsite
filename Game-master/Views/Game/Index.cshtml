@@ -1,0 +1,201 @@
+﻿@model IEnumerable<SwitchPlayD.Data.Game>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
+            <div class="card strpied-tabled-with-hover">
+                <div class="card-header">
+                    <h4 class="card-title">Game List</h4>
+                </div>
+                <div class="card-body table-full-width table-responsive">
+                    <div class="row">
+                        <div class="col-md-6">
+                        </div>
+                        <div class="col-md-6">
+                            <a asp-action="Create" asp-controller="Game" class="btn btn-primary float-right"><i class="fa-solid fa-plus"></i> Create</a>
+                        </div>
+                    </div>
+                    <br />
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Publish Date</th>
+                                <th>Game Size</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.Title</td>
+                                    <td>
+                                        @if (item.Description.Length > 30)
+                                        {
+                                            <span data-toggle="tooltip" data-placement="top" title="@item.Description"><i>Hover Me</i></span>
+                                        }
+                                        else {
+                                            @item.Description
+                                        }
+                                        
+                                    </td>
+                                    <td>@item.PublishDate.ToString("dd/MM/yyyy")</td>
+                                    <td>@item.Size</td>
+                                    <td><span class="badge badge-primary">$@item.Price</span></td>
+                                    <td>
+                                        @if (item.Discount != null && item.Discount != 0){
+                                            var total = item.Price - ((item.Price * item.Discount) / 100);
+                                            <span class="badge badge-success">$@total</span>
+                                        }
+                                        else {
+                                            <span class="badge badge-primary">$@item.Price</span>
+                                        }
+                                    </td>
+                                    <td class="float-right">
+                                        <a class="text-danger" title="Delete" asp-route-id="@item.Id" asp-action="Delete"><i class="fa-solid fa-trash"></i></a>
+                                        &nbsp;
+                                        <a style="cursor: pointer;" class="badge badge-success" title="Discount" data-toggle="modal" data-target="#discountModal-@item.Id"><i class="fa-solid fa-dollar-sign"></i></a>
+                                        &nbsp;
+                                        <a style="cursor: pointer;" class="badge badge-info" title="Info" data-toggle="modal" data-target="#infoModal-@item.Id"><i class="fa-solid fa-info-circle"></i></a>
+                                        
+
+                                    </td>
+                                </tr>
+
+                                <div class="modal fade" id="discountModal-@item.Id" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="exampleModalLongTitle">Add Discount @item.Title</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <form asp-action="ApplyDiscount">
+                                                <div class="modal-body">
+                                                    <div class="col-md-12">
+                                                        <label>Discount %</label> <br />
+                                                        <input class="form-control" name="discount" type="number" step="0.1" />
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="submit" asp-action="ApplyDiscount" asp-route-id="@item.Id" class="btn btn-primary float-right"><i class="fa-solid fa-floppy-disk"></i> Apply</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <!-- Info Details Modal -->
+                                <div class="modal fade" id="infoModal-@item.Id" role="dialog" aria-labelledby="infoModalLabel-@item.Id" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header" style="background-color:aliceblue;">
+                                                <h5 style="color: blue; font-size: 20px; font-family:'Bauhaus 93';" class="modal-title" id="infoModalLabel-@item.Id"> @item.Title</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p><strong>Title:</strong> @item.Title</p>
+                                                <p><strong>Description:</strong> @item.Description</p>
+                                                <p><strong>Size:</strong> @item.Size GB</p>
+                                                <p><strong>Publish Date:</strong> @item.PublishDate</p>
+                                                <p><strong>Price:</strong> $@item.Price</p>
+                                                <p><strong>Discount:</strong> @item.Discount % </p>
+                                                <p>
+                                                    <strong>Total:</strong>
+                                                    @if (@item.Discount != null)
+                                                    {
+                                                    <p>$@(@item.Price - ((@item.Price * @item.Discount) / 100))</p>
+                                                    }
+                                                    else
+                                                    {
+                                                    <p>$@(@item.Price)</p>
+                                                    }
+                                                </p>
+
+                                                <p>
+                                                    <strong>Platforms:</strong>
+                                                    @if (item.GamePlatforms != null && item.GamePlatforms.Any())
+                                                    {
+                                                        @foreach (var platform in item.GamePlatforms)
+                                                        {
+                                                            <span>@platform.PlatformId</span>
+                                                            <br />
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>No platforms available</span>
+                                                    }
+                                                </p>
+                                                <p>
+                                                    <strong>Categories:</strong>
+                                                    @if (item.GameCategories != null && item.GameCategories.Any())
+                                                    {
+                                                        @foreach (var category in item.GameCategories)
+                                                        {
+                                                            <span>@category.Category</span>
+                                                            <br />
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>No platforms available</span>
+                                                    }
+                                                </p>
+                                                <p>
+                                                    <strong>Studio:</strong>
+                                                    @if (item.Studio != null)
+                                                    {
+                                                        <span>@item.Studio.Name</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>No studio assigned</span>
+                                                    }
+                                                </p>
+
+
+
+                                                <!-- Poster image (optional) -->
+                                                @if (item.Poster != null)
+                                                {
+                                                    <p><strong>Poster:</strong></p>
+                                                    <img src="~/img/gamePosters/@item.Poster" alt="Game Poster" class="img-fluid" />
+                                                }
+                                            </div>
+
+
+
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" style="background-color: blue; color: white; border: none;" data-dismiss="modal">Close</button>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-1"></div>
+    </div>
+</div>
